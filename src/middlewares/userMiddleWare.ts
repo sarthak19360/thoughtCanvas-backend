@@ -1,22 +1,19 @@
 import { User } from "../utils/users";
 import users from "../utils/users";
 
+const jwt = require("jsonwebtoken");
+const secret = "top-semcret";
+
 export default function userMiddleWare(req: any, res: any, next: Function) {
-  const userName: string = req.body.userName;
-  const password: string = req.body.password;
-  const user: User | undefined = users.find((u) => u.userName === userName);
-  if (user) {
-    if (user.password === password) {
-      next();
-      return;
-    } else {
-      return res.status(401).json({
-        msg: "Wrong password",
-      });
-    }
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) {
+    return res.status(403).json({ msg: "Missing auth header" });
+  }
+  const decoded: User | undefined = jwt.verify(authHeader, secret);
+  if (decoded && decoded.userName) {
+    req.userName = decoded.userName;
+    next();
   } else {
-    return res.status(403).json({
-      msg: "Wrong User input",
-    });
+    return res.status(403).json({ msg: "Incorrect token" });
   }
 }
