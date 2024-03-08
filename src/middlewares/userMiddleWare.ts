@@ -1,5 +1,4 @@
 import { User } from "../utils/users";
-import users from "../utils/users";
 
 const jwt = require("jsonwebtoken");
 const secret = "top-semcret";

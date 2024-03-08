@@ -55,9 +55,14 @@ const userSignUp = (req: any, res: any) => {
 const getUserInfo = (req: any, res: any) => {
   const userId: number = Number(req.params.userId);
   let currUser: User | undefined = users.find((u) => u.userId === userId);
+
   if (currUser) {
+    const data = {
+      id: currUser.userId,
+      name: currUser.userName,
+    };
     return res.status(200).json({
-      data: currUser,
+      data,
     });
   } else {
     return res.status(401).json({
@@ -79,7 +84,8 @@ const updateUserInfo = (req: any, res: any) => {
       userName,
       password,
     };
-    currUser = newUserInfo;
+    currUser.userName = newUserInfo.userName;
+    currUser.password = newUserInfo.password;
     return res.status(200).json({
       msg: "UserInfo updated",
     });

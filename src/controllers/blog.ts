@@ -62,7 +62,7 @@ const deleteBlog = (req: any, res: any) => {
     const newArr: Blog[] = blogs.filter((b) => b.blog_id !== id);
     blogs = newArr;
     return res.status(201).json({
-      msg: `Delete blog with id ${id} successfully`,
+      msg: `Deleted blog with id ${id} successfully`,
     });
   } else {
     return res.status(401).send("Invalid Id");

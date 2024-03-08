@@ -10,9 +10,9 @@ const {
 } = require("../controllers/user");
 
 router
-  .get("/:id", getUserInfo)
-  .put("/:id", updateUserInfo)
-  .post("/", userMiddleWare, userLogin)
-  .post("/", userMiddleWare, userSignUp);
+  .get("/user/:userId", getUserInfo)
+  .put("/user/:userId", updateUserInfo)
+  .post("/user/login", userLogin)
+  .post("/user/signup", userSignUp);
 
 export default router;
