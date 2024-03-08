@@ -1,5 +1,4 @@
 import { Router } from "express";
-import userMiddleWare from "../middlewares/userMiddleWare";
 const router = Router();
 
 const {
