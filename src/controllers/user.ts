@@ -6,40 +6,6 @@ const User = require("../models/user");
 require("dotenv").config();
 const secret = process.env.secret;
 
-// login
-const userLogin = async (req: any, res: any) => {
-  const userName: string = req.body.userName;
-  const password: string = req.body.password;
-
-  // input validation
-  if (
-    !zod.string().safeParse(userName).success ||
-    !zod.string().safeParse(password).success
-  ) {
-    return res.status(403).json("Wrong input type");
-  }
-
-  const user = await User.findOne({ userName });
-
-  if (!user) {
-    return res.status(403).json({ msg: "User not found" });
-  }
-
-  if (user.password !== password) {
-    return res.status(403).json({ msg: "Incorrect password" });
-  }
-
-  const token = jwt.sign(
-    {
-      userName,
-      password,
-    },
-    secret
-  );
-
-  return res.json({ token });
-};
-
 // signup
 const userSignUp = async (req: any, res: any) => {
   const userName: string = req.body.userName;
@@ -72,6 +38,42 @@ const userSignUp = async (req: any, res: any) => {
   });
 };
 
+// login
+const userLogin = async (req: any, res: any) => {
+  const userName: string = req.body.userName;
+  const password: string = req.body.password;
+
+  // input validation
+  if (
+    !zod.string().safeParse(userName).success ||
+    !zod.string().safeParse(password).success
+  ) {
+    return res.status(403).json("Wrong input type");
+  }
+
+  const user = await User.findOne({ userName });
+
+  if (!user) {
+    return res.status(403).json({ msg: "User not found" });
+  }
+
+  if (user.password !== password) {
+    return res.status(403).json({ msg: "Incorrect password" });
+  }
+
+  const token = jwt.sign(
+    {
+      userName,
+    },
+    secret,
+    {
+      expiresIn: "1h",
+    }
+  );
+
+  return res.json({ token });
+};
+
 // get user info
 const getUserInfo = async (req: any, res: any) => {
   const userId: ObjectId = req.params.userId;
@@ -95,11 +97,19 @@ const getUserInfo = async (req: any, res: any) => {
 
 // update user info
 const updateUserInfo = async (req: any, res: any) => {
-  const userId: ObjectId = req.params.userId;
+  const user = await User.find({ userName: req.userName });
+
   const userName: string = req.body.userName;
   const password: string = req.body.password;
 
-  const currUser = await User.findById(userId);
+  // Ensure that the user is updating their own information
+  if (req.params.userId !== user[0]._id.toHexString()) {
+    return res.status(403).json({
+      msg: "You are not authorized to update this user's information",
+    });
+  }
+
+  const currUser = await User.findById(user[0]._id.toHexString());
 
   if (currUser) {
     currUser.userName = userName;

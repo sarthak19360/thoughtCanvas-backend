@@ -1,4 +1,5 @@
 import { Router } from "express";
+import userMiddleWare from "../middlewares/userMiddleWare";
 const router = Router();
 
 const {
@@ -10,7 +11,7 @@ const {
 
 router
   .get("/user/:userId", getUserInfo)
-  .put("/user/:userId", updateUserInfo)
+  .put("/user/:userId", userMiddleWare, updateUserInfo)
   .post("/user/login", userLogin)
   .post("/user/signup", userSignUp);
 

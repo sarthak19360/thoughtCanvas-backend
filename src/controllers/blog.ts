@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 const Blog = require("../models/blog");
 
-// get all users
+// get all blogs
 const getAllBlogs = async (req: any, res: any) => {
   try {
     const blogs = await Blog.find({});
@@ -15,11 +15,11 @@ const getAllBlogs = async (req: any, res: any) => {
   }
 };
 
-// get a single user
+// get a single blog
 const getSingleBlog = async (req: any, res: any) => {
   try {
-    const id: ObjectId = req.params.id;
-    const blog = await Blog.findById(id);
+    const blogId: ObjectId = req.params.blogId;
+    const blog = await Blog.findById(blogId);
     if (blog) {
       return res.status(200).json({
         blog: blog,
@@ -38,9 +38,11 @@ const getSingleBlog = async (req: any, res: any) => {
 // post a blog
 const postBlog = async (req: any, res: any) => {
   try {
+    const authorName: String = req.userName;
     const content: string = req.body.content;
     const singleBlog = new Blog({
       blog_content: content,
+      blog_author: authorName,
     });
 
     await singleBlog.save();
@@ -54,10 +56,16 @@ const postBlog = async (req: any, res: any) => {
 // update a blog
 const updateBlog = async (req: any, res: any) => {
   try {
-    const id: ObjectId = req.params.id;
-    const content: string = req.body.content;
-    const blog = await Blog.findById(id);
+    const blogId: ObjectId = req.params.blogId;
+    const authorName: String = req.userName;
+    const { content } = req.body;
+    const blog = await Blog.findById(blogId);
     if (blog) {
+      if (blog.blog_author !== authorName) {
+        return res
+          .status(403)
+          .json({ error: "You are not authorized to update this blog" });
+      }
       blog.blog_content = content;
       await blog.save();
       return res.status(200).json({
@@ -77,12 +85,18 @@ const updateBlog = async (req: any, res: any) => {
 // delete a blog
 const deleteBlog = async (req: any, res: any) => {
   try {
-    const id: ObjectId = req.params.id;
-    const blog = await Blog.findById(id);
+    const blogId: ObjectId = req.params.blogId;
+    const authorName: String = req.userName; // Get the user's ID from the JWT token
+    const blog = await Blog.findById(blogId);
     if (blog) {
-      await Blog.findByIdAndDelete(id);
+      if (blog.blog_author !== authorName) {
+        return res
+          .status(403)
+          .json({ error: "You are not authorized to delete this blog" });
+      }
+      await Blog.findByIdAndDelete(blogId);
       return res.status(201).json({
-        msg: `Deleted blog with id ${id} successfully`,
+        msg: `Deleted blog with id ${blogId} successfully`,
       });
     } else {
       return res.status(401).send("Invalid Id");

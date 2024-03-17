@@ -12,9 +12,9 @@ const {
 
 router
   .get("/blogs", getAllBlogs)
-  .get("/blog/:id", getSingleBlog)
+  .get("/blog/:blogId", getSingleBlog)
   .post("/blog-post", userMiddleWare, postBlog)
-  .put("/blog/:id", userMiddleWare, updateBlog)
-  .delete("/blog/:id", userMiddleWare, deleteBlog);
+  .put("/blog/:blogId", userMiddleWare, updateBlog)
+  .delete("/blog/:blogId", userMiddleWare, deleteBlog);
 
 export default router;
