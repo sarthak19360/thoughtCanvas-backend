@@ -1,71 +1,95 @@
-import impBlogs, { Blog } from "../utils/blogs";
+import { ObjectId } from "mongodb";
 
-// making a copy of blogs array
-let blogs: Blog[] = impBlogs;
+const Blog = require("../models/blog");
 
 // get all users
-const getAllBlogs = (req: any, res: any) => {
-  res.status(200).json({
-    blogs,
-  });
+const getAllBlogs = async (req: any, res: any) => {
+  try {
+    const blogs = await Blog.find({});
+    res.status(200).json({
+      blogs,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 // get a single user
-const getSingleBlog = (req: any, res: any) => {
-  const id: number = Number(req.params.id);
-  const blog: Blog | undefined = blogs.find((b) => b.blog_id === id);
-  if (blog) {
-    return res.status(200).json({
-      blog: blog,
-    });
-  } else {
-    return res.status(401).json({
-      msg: "Not Found",
-    });
+const getSingleBlog = async (req: any, res: any) => {
+  try {
+    const id: ObjectId = req.params.id;
+    const blog = await Blog.findById(id);
+    if (blog) {
+      return res.status(200).json({
+        blog: blog,
+      });
+    } else {
+      return res.status(401).json({
+        msg: "Not Found",
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 // post a blog
-const postBlog = (req: any, res: any) => {
-  const id: number = req.body.id;
-  const content: string = req.body.content;
-  const singleBlog: Blog = {
-    blog_id: id,
-    blog_content: content,
-  };
-  blogs.push(singleBlog);
-  res.status(200).json(singleBlog);
+const postBlog = async (req: any, res: any) => {
+  try {
+    const content: string = req.body.content;
+    const singleBlog = new Blog({
+      blog_content: content,
+    });
+
+    await singleBlog.save();
+    res.status(200).json(singleBlog);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 // update a blog
-const updateBlog = (req: any, res: any) => {
-  const id: number = Number(req.params.id);
-  const content: string = req.body.content;
-  const blog: Blog | undefined = blogs.find((b) => b.blog_id === id);
-  if (blog) {
-    blog.blog_content = content;
-    return res.status(200).json({
-      blog: blog,
-    });
-  } else {
-    return res.status(401).json({
-      msg: "Not Found",
-    });
+const updateBlog = async (req: any, res: any) => {
+  try {
+    const id: ObjectId = req.params.id;
+    const content: string = req.body.content;
+    const blog = await Blog.findById(id);
+    if (blog) {
+      blog.blog_content = content;
+      await blog.save();
+      return res.status(200).json({
+        blog: blog,
+      });
+    } else {
+      return res.status(401).json({
+        msg: "Not Found",
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 // delete a blog
-const deleteBlog = (req: any, res: any) => {
-  const id: number = Number(req.params.id);
-  const blog: Blog | undefined = blogs.find((b) => b.blog_id === id);
-  if (blog) {
-    const newArr: Blog[] = blogs.filter((b) => b.blog_id !== id);
-    blogs = newArr;
-    return res.status(201).json({
-      msg: `Deleted blog with id ${id} successfully`,
-    });
-  } else {
-    return res.status(401).send("Invalid Id");
+const deleteBlog = async (req: any, res: any) => {
+  try {
+    const id: ObjectId = req.params.id;
+    const blog = await Blog.findById(id);
+    if (blog) {
+      await Blog.findByIdAndDelete(id);
+      return res.status(201).json({
+        msg: `Deleted blog with id ${id} successfully`,
+      });
+    } else {
+      return res.status(401).send("Invalid Id");
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

@@ -1,20 +1,13 @@
-import impUsers, { User } from "../utils/users";
+import { ObjectId } from "mongodb";
+
 const jwt = require("jsonwebtoken");
 const zod = require("zod");
-const secret = "top-semcret";
-
-let users: User[] = impUsers;
-
-const userInputSchema = zod.object({
-  userId: zod.number(),
-  userName: zod.string(),
-  password: zod.string(),
-});
-
-const undefinedSchema = zod.undefined();
+const User = require("../models/user");
+require("dotenv").config();
+const secret = process.env.secret;
 
 // login
-const userLogin = (req: any, res: any) => {
+const userLogin = async (req: any, res: any) => {
   const userName: string = req.body.userName;
   const password: string = req.body.password;
 
@@ -26,7 +19,7 @@ const userLogin = (req: any, res: any) => {
     return res.status(403).json("Wrong input type");
   }
 
-  const user: User | undefined = users.find((x) => x.userName === userName);
+  const user = await User.findOne({ userName });
 
   if (!user) {
     return res.status(403).json({ msg: "User not found" });
@@ -48,12 +41,19 @@ const userLogin = (req: any, res: any) => {
 };
 
 // signup
-const userSignUp = (req: any, res: any) => {
+const userSignUp = async (req: any, res: any) => {
   const userName: string = req.body.userName;
   const password: string = req.body.password;
-  const userExists: User | undefined = users.find(
-    (u) => u.userName === userName
-  );
+
+  // input validation
+  if (
+    !zod.string().safeParse(userName).success ||
+    !zod.string().safeParse(password).success
+  ) {
+    return res.status(403).json("Wrong input type");
+  }
+
+  const userExists = await User.findOne({ userName });
 
   if (userExists) {
     return res.status(409).json({
@@ -61,33 +61,22 @@ const userSignUp = (req: any, res: any) => {
     });
   }
 
-  const newUser: User | undefined = {
-    userId: 3,
+  const newUser = new User({
     userName,
     password,
-  };
-  // checking user input type
-  if (!userInputSchema.safeParse(newUser).success) {
-    return res.status(401).json({
-      msg: "Wrong input type",
-    });
-  }
-  users.push(newUser);
+  });
+
+  await newUser.save();
   return res.status(201).json({
     msg: "Success",
   });
 };
 
 // get user info
-const getUserInfo = (req: any, res: any) => {
-  const userId: number = Number(req.params.userId);
+const getUserInfo = async (req: any, res: any) => {
+  const userId: ObjectId = req.params.userId;
 
-  // checking user input type
-  if (!zod.number().safeParse(userId).success) {
-    return res.status(401).json("Wrong input type");
-  }
-
-  let currUser: User | undefined = users.find((u) => u.userId === userId);
+  let currUser = await User.findById(userId);
 
   if (currUser) {
     const data = {
@@ -105,34 +94,17 @@ const getUserInfo = (req: any, res: any) => {
 };
 
 // update user info
-const updateUserInfo = (req: any, res: any) => {
-  const userId: number = Number(req.params.userId);
+const updateUserInfo = async (req: any, res: any) => {
+  const userId: ObjectId = req.params.userId;
   const userName: string = req.body.userName;
   const password: string = req.body.password;
 
-  let currUser: User | undefined = users.find((u) => u.userId === userId);
-
-  // checking user input type
-  if (!zod.number().safeParse(userId).success) {
-    return res.status(401).json({
-      msg: "Wrong input type",
-    });
-  }
+  const currUser = await User.findById(userId);
 
   if (currUser) {
-    const newUserInfo: User = {
-      userId,
-      userName,
-      password,
-    };
-    // checking user input type
-    if (!userInputSchema.safeParse(newUserInfo).success) {
-      return res.status(401).json({
-        msg: "Wrong input type",
-      });
-    }
-    currUser.userName = newUserInfo.userName;
-    currUser.password = newUserInfo.password;
+    currUser.userName = userName;
+    currUser.password = password;
+    await currUser.save();
     return res.status(200).json({
       msg: "UserInfo updated",
     });
