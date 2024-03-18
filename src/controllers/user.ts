@@ -74,6 +74,11 @@ const userLogin = async (req: any, res: any) => {
   return res.json({ token });
 };
 
+// logout
+const logoutHandler = (req: any, res: any): void => {
+  res.status(200).json({ message: "Logout successful", token: req.token });
+};
+
 // get user info
 const getUserInfo = async (req: any, res: any) => {
   const userId: ObjectId = req.params.userId;
@@ -125,4 +130,4 @@ const updateUserInfo = async (req: any, res: any) => {
   }
 };
 
-export { userLogin, userSignUp, getUserInfo, updateUserInfo };
+export { userLogin, userSignUp, getUserInfo, updateUserInfo, logoutHandler };
