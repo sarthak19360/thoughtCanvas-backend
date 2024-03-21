@@ -107,4 +107,25 @@ const deleteBlog = async (req: any, res: any) => {
   }
 };
 
-export { getAllBlogs, getSingleBlog, postBlog, updateBlog, deleteBlog };
+// get all blogs by a user
+const getAllBlogsByUser = async (req: any, res: any) => {
+  try {
+    const blog_author = req.params.blog_author;
+    const blogs = await Blog.find({ blog_author });
+    res.status(200).json({
+      blogs,
+    });
+  } catch (error) {
+    console.log("Error fetching blogs: " + error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export {
+  getAllBlogs,
+  getSingleBlog,
+  postBlog,
+  updateBlog,
+  deleteBlog,
+  getAllBlogsByUser,
+};

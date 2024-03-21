@@ -15,7 +15,7 @@ const {
 } = require("../controllers/user");
 
 router
-  .get("/user/:userId", getUserInfo)
+  .get("/user/:userName", getUserInfo)
   .get("/user/followers/:userId", getFollowerList)
   .put("/user/:userId", userMiddleWare, updateUserInfo)
   .post("/user/login", userLogin)

@@ -82,14 +82,15 @@ const logoutHandler = (req: any, res: any): void => {
 
 // get user info
 const getUserInfo = async (req: any, res: any) => {
-  const userId: ObjectId = req.params.userId;
+  const userName: String = req.params.userName;
 
-  let currUser = await User.findById(userId);
+  let currUser = await User.find({ userName });
 
   if (currUser) {
     const data = {
-      id: currUser.userId,
-      name: currUser.userName,
+      name: currUser[0].userName,
+      followers: currUser[0].followers,
+      following: currUser[0].following,
     };
     return res.status(200).json({
       data,
