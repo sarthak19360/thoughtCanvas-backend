@@ -17,11 +17,11 @@ const {
 router
   .get("/user/:userName", getUserInfo)
   .get("/user/followers/:userId", getFollowerList)
-  .put("/user/:userId", userMiddleWare, updateUserInfo)
+  .put("/user/update/:userId", userMiddleWare, updateUserInfo)
   .post("/user/login", userLogin)
   .post("/user/logout", invalidateToken, logoutHandler)
   .post("/user/signup", userSignUp)
-  .put("/user/follow/:followUserId", userMiddleWare, followUser)
+  .put("/user/follow", userMiddleWare, followUser)
   .put("/user/unfollow/:unfollowUserId", userMiddleWare, unfollowUser);
 
 export default router;

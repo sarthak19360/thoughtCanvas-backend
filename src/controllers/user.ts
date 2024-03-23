@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 const mongoose = require("mongoose");
 
 const jwt = require("jsonwebtoken");
@@ -13,10 +12,7 @@ const userSignUp = async (req: any, res: any) => {
   const password: string = req.body.password;
 
   // input validation
-  if (
-    !zod.string().safeParse(userName).success ||
-    !zod.string().safeParse(password).success
-  ) {
+  if (!zod.string().safeParse(userName).success) {
     return res.status(403).json("Wrong input type");
   }
 
@@ -45,10 +41,7 @@ const userLogin = async (req: any, res: any) => {
   const password: string = req.body.password;
 
   // input validation
-  if (
-    !zod.string().safeParse(userName).success ||
-    !zod.string().safeParse(password).success
-  ) {
+  if (!zod.string().safeParse(userName).success) {
     return res.status(403).json("Wrong input type");
   }
 
@@ -146,8 +139,9 @@ const followUser = async (req: any, res: any) => {
 
     // Get the userId and followUserName
     const userId = user._id;
-    const followUserId = req.params.followUserId;
-    const followUser = await User.findById(followUserId);
+    const followUserName = req.body.followUserName;
+
+    const followUser = await User.findOne({ userName: followUserName });
 
     if (!followUser) {
       return res
@@ -155,7 +149,7 @@ const followUser = async (req: any, res: any) => {
         .json({ success: false, message: "Follow user not found" });
     }
 
-    if (userId.toString() === followUserId) {
+    if (userId.toString() === followUser._id.toString()) {
       return res.status(402).json({
         msg: "Can't follow yourself",
       });
@@ -164,7 +158,7 @@ const followUser = async (req: any, res: any) => {
     // Check if the user is already following the target user
     if (
       user.following.some(
-        (follow: any) => follow.userId.toString() === followUserId
+        (follow: any) => follow.userId.toString() === followUser._id.toString()
       )
     ) {
       return res.status(400).json({
@@ -173,17 +167,15 @@ const followUser = async (req: any, res: any) => {
       });
     }
 
-    const followUserName = followUser.userName;
-
     // Update the follower's following list
     await User.findByIdAndUpdate(userId, {
       $addToSet: {
-        following: { userId: followUserId, username: followUserName },
+        following: { userId: followUser._id, username: followUserName },
       },
     });
 
     // Update the followed user's followers list
-    await User.findByIdAndUpdate(followUserId, {
+    await User.findByIdAndUpdate(followUser._id, {
       $addToSet: { followers: { userId, username: user.userName } },
     });
 
