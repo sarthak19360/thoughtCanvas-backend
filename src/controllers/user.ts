@@ -95,6 +95,22 @@ const getUserInfo = async (req: any, res: any) => {
   }
 };
 
+// get all followers for a user
+const getFollowerList = async (req: any, res: any) => {
+  try {
+    const { userName } = req.params;
+    const user = await User.find({ userName });
+    const followers = user[0].followers;
+    const usernames = followers?.map((f: any) => f.username);
+    res.status(201).json({ data: usernames });
+  } catch (error) {
+    console.error("Error fetching followers: ", error);
+    return res
+      .status(403)
+      .json({ success: false, message: "Error fetching followers" });
+  }
+};
+
 // update user info
 const updateUserInfo = async (req: any, res: any) => {
   const user = await User.find({ userName: req.userName });
@@ -205,10 +221,18 @@ const unfollowUser = async (req: any, res: any) => {
 
     // Get the userId and unfollowUserId
     const userId = user._id;
-    const unfollowUserId = req.params.unfollowUserId;
+    const unfollowUserName = req.body.unfollowUserName;
+
+    const unfollowUser = await User.findOne({ userName: unfollowUserName });
+
+    if (!unfollowUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Unfollow user not found" });
+    }
 
     // Check if the user is trying to unfollow themselves
-    if (userId.toString() === unfollowUserId) {
+    if (userId.toString() === unfollowUser._id.toString()) {
       return res
         .status(400)
         .json({ success: false, message: "User cannot unfollow themselves" });
@@ -217,7 +241,8 @@ const unfollowUser = async (req: any, res: any) => {
     // Check if the user is not following the target user
     if (
       !user.following.some(
-        (follow: any) => follow.userId.toString() === unfollowUserId
+        (follow: any) =>
+          follow.userId.toString() === unfollowUser._id.toString()
       )
     ) {
       return res.status(400).json({
@@ -226,23 +251,16 @@ const unfollowUser = async (req: any, res: any) => {
       });
     }
 
-    // Find the unfollow user by ID
-    const unfollowUser = await User.findById(unfollowUserId);
-
-    if (!unfollowUser) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Unfollow user not found" });
-    }
-
     // Update the follower's following list
     await User.findByIdAndUpdate(userId, {
-      $pull: { following: { userId: unfollowUserId } },
+      $pull: {
+        following: { userId: unfollowUser._id, username: unfollowUserName },
+      },
     });
 
     // Update the unfollowed user's followers list
-    await User.findByIdAndUpdate(unfollowUserId, {
-      $pull: { followers: { userId } },
+    await User.findByIdAndUpdate(unfollowUser._id, {
+      $pull: { followers: { userId, username: user.userName } },
     });
 
     // Return success message
@@ -254,21 +272,6 @@ const unfollowUser = async (req: any, res: any) => {
     return res
       .status(500)
       .json({ success: false, message: "Error unfollowing user" });
-  }
-};
-
-// get all followers for a user
-const getFollowerList = async (req: any, res: any) => {
-  try {
-    const { userId } = req.params;
-    const { followers } = await User.findById(userId);
-    const usernames = followers.map((f: any) => f.username);
-    res.status(201).json({ data: usernames });
-  } catch (error) {
-    console.error("Error fetching followers: ", error);
-    return res
-      .status(403)
-      .json({ success: false, message: "Error fetching followers" });
   }
 };
 

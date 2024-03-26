@@ -16,12 +16,12 @@ const {
 
 router
   .get("/user/:userName", getUserInfo)
-  .get("/user/followers/:userId", getFollowerList)
-  .put("/user/update/:userId", userMiddleWare, updateUserInfo)
+  .get("/user/followers/:userName", getFollowerList)
+  .put("/user/update/:userId", userMiddleWare, updateUserInfo) // 1
   .post("/user/login", userLogin)
-  .post("/user/logout", invalidateToken, logoutHandler)
+  .post("/user/logout", invalidateToken, logoutHandler) // 1
   .post("/user/signup", userSignUp)
   .put("/user/follow", userMiddleWare, followUser)
-  .put("/user/unfollow/:unfollowUserId", userMiddleWare, unfollowUser);
+  .put("/user/unfollow", userMiddleWare, unfollowUser);
 
 export default router;
